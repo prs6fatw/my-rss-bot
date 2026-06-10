@@ -1,0 +1,33 @@
+name: Generate RSS Feed
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 每天國際標準時間 00:00 (台灣時間早上 8 點) 自動執行
+  workflow_dispatch: # 允許手動點擊按鈕執行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: 檢查程式碼
+      uses: actions/checkout@v3
+
+    - name: 設定 Python 環境
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: 安裝套件
+      run: |
+        pip install -r requirements.txt
+
+    - name: 執行轉換程式
+      run: python web_to_rss.py
+
+    - name: 將產出的 RSS 檔案推回 GitHub
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git add fisheries_rules.xml
+        git commit -m "自動更新 RSS 檔案" || exit 0
+        git push
